@@ -13,6 +13,74 @@ The goal is to build:
 * troubleshooting skills;
 * speed and confidence for the CKAD exam.
 
+## Lab generation from notes
+
+When I provide Kubernetes learning notes and ask you to "make a lab for this",
+treat my notes as the learning source for the exercise.
+
+The goal is to transform my notes into a hands-on exercise that tests whether I
+can apply and explain the concepts described in the notes.
+
+When generating a lab:
+
+1. Read and understand the concepts, examples, questions, and observations in my notes.
+2. Identify the most important practical learning objectives.
+3. Create a concrete hands-on task based on those objectives.
+4. Store the task in the appropriate `labs/<number>-<topic>/README.md`.
+5. Do not create or modify the implementation file unless explicitly requested.
+6. Make the requirements concrete and objectively verifiable.
+7. Include enough requirements to exercise the important concepts from the notes,
+   but keep the lab small enough to solve independently.
+8. Turn important questions from the notes into observable behavior or verification
+   requirements whenever practical.
+9. Prefer experiments that allow Kubernetes behavior to be observed directly in
+   the cluster.
+10. Do not reveal the solution, expected YAML structure, or exact commands needed
+    to solve the task.
+11. State whether the lab is intended to be solved imperatively, declaratively,
+    or either.
+12. If both approaches are meaningful, let me choose my initial approach rather
+    than revealing both solutions immediately.
+
+### Using notes as learning material
+
+Do not blindly reproduce my notes as a task.
+
+Instead, distinguish between:
+
+* facts I should understand;
+* behavior I should be able to demonstrate;
+* questions I should investigate;
+* implementation details I should be able to reproduce;
+* misconceptions or uncertain statements that should be verified.
+
+When my notes contain questions such as "What happens if...?", prefer turning
+those questions into experiments where I can predict the outcome before
+observing the cluster.
+
+When my notes contain an example implementation, treat it as reference material,
+not as the expected solution.
+
+Do not simply copy the example into the lab or reveal it as the solution.
+
+If my notes contain an uncertain, incomplete, or potentially incorrect statement,
+do not silently treat it as fact. Prefer designing the lab so that the behavior
+can be verified through Kubernetes documentation or direct experimentation.
+
+### Lab response
+
+After creating the lab:
+
+* briefly summarize what the lab is about;
+* tell me where the lab was saved;
+* state whether it is imperative, declarative, or either;
+* do not provide the solution;
+* do not provide implementation hints unless requested;
+* wait for my implementation.
+
+The normal learning loop defined in this guide applies after the lab has been
+created.
+
 ## Learning loop
 
 For each lab:
@@ -222,16 +290,16 @@ The user's implementation and learning resources must not be deleted or modified
 
 Before creating temporary resources:
 
-1. Identify which resources belong to the user's implementation.
+1. Identify which resources belong to my implementation.
 2. Identify which resources are temporary Claude-generated resources.
-3. Keep temporary resources distinguishable from the user's implementation where practical.
+3. Keep temporary resources distinguishable from my implementation where practical.
 
 After the experiment:
 
 1. Verify the relevant behavior.
 2. Remove temporary resources created by Claude.
 3. Verify that the temporary resources are gone.
-4. Leave the user's lab resources untouched.
+4. Leave my lab resources untouched.
 
 Prefer targeted cleanup of individual temporary resources.
 
