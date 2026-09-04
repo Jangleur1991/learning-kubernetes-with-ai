@@ -319,7 +319,7 @@ casually. Numbering is enforced by `tests/rules/r1-lab-numbering.sh`.
 
 A note answers: *what did I learn that will be useful again?*
 
-Structure:
+For `concepts/`, `troubleshooting/`, and `patterns/`, structure:
 
 ```text
 What / Why / Example / Gotchas / Used in
@@ -333,7 +333,32 @@ Categories, and no others without a strong reason:
 notes/concepts/          how something works
 notes/troubleshooting/   symptom -> diagnosis -> fix
 notes/patterns/          reusable approaches
+notes/ckad-feedback/     personal performance feedback, one file per lab
 ```
+
+`ckad-feedback/` is the odd one out: it is about the learner's performance, not
+the subject matter, and Claude writes it, not the learner. One file per lab,
+named identically to the lab directory (`notes/ckad-feedback/NN-lab-name.md`),
+appended to over time rather than replaced. Structure — three lines, no
+sub-headings:
+
+```text
+## <date> — <exercise/scenario reviewed>
+
+**Gut:** one line.
+**Verbessern:** one line.
+**Nächster Schritt:** one concrete, actionable line.
+```
+
+Terse by design: a bullet earns its place only if it changes what the learner
+does next time. Drop anything that just restates what happened.
+
+Written only when Claude solves an exercise on request or reviews the
+learner's completed work — never proactively, never mid-attempt, and never
+introducing task content the learner has not yet reached (including
+`## Optional experiments`). See `CLAUDE.md`. Every file carries
+`<!-- ai-generated -->` on its first line, consistent with other
+Claude-authored content in this repository.
 
 Inline markers when useful: `> TODO:`, `> QUESTION:`, `> OBSERVATION:`.
 Do not retro-fit them to existing notes.

@@ -13,11 +13,14 @@ learned — usually something that surprised you.
 concepts/          how something works
 troubleshooting/   symptom -> diagnosis -> fix
 patterns/          reusable approaches
+ckad-feedback/     personal performance feedback, written by Claude
 ```
 
 Do not add categories without a strong reason.
 
 ## Structure
+
+For `concepts/`, `troubleshooting/`, `patterns/`:
 
 ```markdown
 # Title
@@ -31,6 +34,18 @@ Do not add categories without a strong reason.
 
 `Used in` points at real files in this repository — the lab where it came up,
 the scratch writeup that shows the evidence.
+
+For `ckad-feedback/` — one file per lab, `NN-lab-name.md`, appended to over
+time, written by Claude only when solving or reviewing on request (see
+`CLAUDE.md`, `## CKAD feedback notes`):
+
+```markdown
+## <date> — <exercise/scenario reviewed>
+
+### What went well
+### What to improve for CKAD
+### Priority actions
+```
 
 ## Inline markers
 

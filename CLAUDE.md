@@ -158,6 +158,33 @@ not automatically promoted into `notes/` or into a lab.
 
 ---
 
+## CKAD feedback notes
+
+Triggered whenever Claude solves an exercise on request, or reviews the
+learner's completed implementation. Not triggered proactively, not triggered
+mid-attempt.
+
+Write or append to `notes/ckad-feedback/NN-lab-name.md` (see `GUIDE.md` for the
+category and its exact three-line structure). Maximum brevity: one line each
+for what went well, what to improve, and the next concrete action. If a point
+does not change what the learner does differently next time, cut it.
+
+Label a claim about exam behavior or exam relevance as an assumption when it
+was not verified against a source this session — do not present a guess as
+fact. This mirrors the evidence vocabulary in `## Research` below.
+
+Keep task content out of scope: an improvement note may reference what this
+turn already revealed, but must not introduce outcomes, scenarios, or
+`## Optional experiments` content the learner has not yet attempted, even as a
+side remark. If a question is worth flagging for later, use `> QUESTION:`
+without answering it.
+
+Write the note body in German, consistent with the rest of `notes/`. Headings
+(`## <date> — ...`, `### What went well`, etc.) stay in English so the
+structure matches `GUIDE.md`; only the content underneath is German.
+
+---
+
 ## Ownership
 
 ```text
