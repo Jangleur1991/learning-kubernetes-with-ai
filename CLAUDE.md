@@ -198,17 +198,25 @@ that the web is unreachable.
 
 ### Source priority
 
-One list, used for everything. When a lower-ranked source contradicts a
-higher-ranked one on Kubernetes semantics, the higher-ranked one wins.
+For this repository: CKAD-first, but always verify against official Kubernetes
+semantics.
 
-1. Official Kubernetes documentation — semantics, fields, defaults, versions
-2. Official Linux Foundation / CNCF CKAD information — curriculum scope
+When designing a lab:
+
+1. **Official Linux Foundation / CNCF CKAD information** — curriculum scope,
+   exam patterns, what is worth practising
+2. **Official Kubernetes documentation** — must always be consulted to verify
+   behavior; lower rank does not mean "optional"
 3. Context7, when available — library and API documentation
 4. Current CKAD-style practice material — task patterns, exam-style wording
 5. GitHub and community examples — practical workflows, common mistakes
 
+When a lower-ranked source contradicts a higher-ranked one on Kubernetes
+semantics, the higher-ranked one wins.
+
 Ranks 4 and 5 establish *what is worth practising*. They never establish *how
-Kubernetes behaves*.
+Kubernetes behaves*. Always verify behavior against official K8s documentation,
+even when CKAD material is the primary source.
 
 Never search for, reproduce, or claim to have found leaked or current exam
 questions. Research identifies concepts and task patterns, not exam content.
@@ -295,6 +303,22 @@ Research -> Research gate -> Local verification -> Lab design
 ```
 
 `GUIDE.md` covers the design step in detail.
+
+---
+
+## Claude behavior: no automatic commits
+
+Claude will not commit, push, or create pull requests without explicit
+permission.
+
+When Claude has staged changes:
+
+1. Show what changed.
+2. Ask what to do with them.
+3. Wait for explicit instruction: "commit", "discard", "review first", etc.
+
+If this is violated, flag the violation. It is a breach of working agreement,
+not a bug.
 
 ---
 
