@@ -15,10 +15,30 @@ applied, and defended.
 
 * `labs/` — hands-on Kubernetes exercises
 * `notes/` — knowledge learned in context
-* `scratch/` — temporary AI-generated reference implementations
-* `GUIDE.md` — instructions for Claude Code working in this repository
-* `RULES.md` — enforceable repository invariants
+* `scratch/` — AI reference implementations and experiment writeups
+* `cluster/` — local kind cluster setup and exam ergonomics
 * `tests/rules/` — automated checks for repository rules
+* `tests/hooks/` — guards that block unsafe commands before they run
+* `PROGRESS.md` — what is done, what to revisit, which predictions were wrong
+* `GUIDE.md` — how labs are designed and taught
+* `CLAUDE.md` — how Claude Code operates in this repository
+* `RULES.md` — enforceable repository invariants
+
+### Conventions
+
+| Thing | Convention |
+| --- | --- |
+| Lab directory | `labs/NN-kebab-name/` |
+| My implementation | `labs/NN-*/solution/` |
+| AI's work | `scratch/NN-*/` — same directory name as the lab |
+| Lab namespace | `lab-NN`, deleted in the lab's Cleanup section |
+| Requirement check | `labs/NN-*/verify.sh` |
+
+Run the repository checks:
+
+```bash
+./tests/rules/run-all.sh
+```
 
 ## Learning workflow
 
@@ -103,6 +123,12 @@ I should be able to explain why the resulting system behaves as it does.
 After my first implementation, I can ask Claude Code
 to create a reference implementation in `scratch/`.
 
+It lands in the directory mirroring the lab, so the comparison is one command:
+
+```bash
+diff -r labs/01-pod-lifecycle/solution scratch/01-pod-lifecycle/exercise-1-scenario-a
+```
+
 I compare the two implementations and investigate
 every meaningful difference.
 
@@ -183,13 +209,17 @@ Explain
 Once a concept has been practiced,
 repeat it as a time-constrained CKAD-style task.
 
-During exam-mode exercises:
+Every lab declares a time budget. During exam-mode exercises:
 
 * use only the task requirements;
 * avoid AI hints unless explicitly requested;
 * work primarily with `kubectl`;
 * verify the final state yourself;
-* only then have AI evaluate the result.
+* only then run `verify.sh` and have AI evaluate the result.
+
+`cluster/EXAM-SETUP.md` has the aliases, `$do`/`$now` exports, and vim settings
+that make this survivable. `PROGRESS.md` tracks the timings and the revisit
+schedule — a lab passed once is not a lab learned.
 
 ## Progress
 
@@ -203,6 +233,9 @@ Instead ask:
 * What problem can I diagnose without help?
 * What rule did I discover or tighten?
 * What technical decision can I defend better than before?
+* Which prediction was wrong, and why?
+
+`PROGRESS.md` is where those answers get recorded.
 
 If I can answer those questions with concrete examples,
 the learning is working.

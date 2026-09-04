@@ -1,53 +1,143 @@
-# Kubernetes Rules
+# Repository Rules
 
-Rules describe invariants that must always be true and that can be
-checked automatically.
+A rule is an invariant that must always be true **and** that a machine can
+check. Every rule below names the check that detects a violation.
 
-A rule consists of:
+If a requirement cannot be checked automatically, it is not a rule. It belongs
+in `GUIDE.md` as a guideline.
 
-1. What must be true.
-2. How a violation is detected.
+Run all checks:
 
-If a requirement cannot be objectively checked, it is not a rule.
-Keep it as a guideline in `GUIDE.md` instead.
+```bash
+./tests/rules/run-all.sh
+```
 
-## Rules
+---
 
-## Rule: User implementations are immutable
+## R1 — Lab directories use a unique two-digit sequence number
 
-Files inside `labs/` that are part of the user's implementation must not be
-modified, overwritten, or deleted by Claude unless the user explicitly asks
-for it.
+Every lab directory is `labs/NN-kebab-case-name/` where `NN` is a zero-padded
+two-digit number, unique across the repository.
 
-Violation:
-- Claude modifies, overwrites, or deletes a user's implementation file.
+The number expresses learning sequence only.
 
-Detection:
-- Git diff shows changes to an existing user implementation file that were not
-  explicitly requested.
+Violation: a malformed directory name, or two labs sharing the same `NN`.
 
-## Rule: AI-generated implementations belong in scratch
+Check: `tests/rules/r1-lab-numbering.sh`
 
-AI-generated reference implementations and temporary experiments must not be
-stored in `labs/`.
+---
 
-They must be stored under `scratch/`.
+## R2 — Lab README has the required sections
 
-Violation:
-- Claude creates an AI-generated implementation inside `labs/`.
+Every `labs/NN-*/README.md` contains these headings:
 
-Detection:
-- Files created by Claude that contain reference implementations or temporary
-  experiments exist below `labs/` without being part of the user's requested
-  implementation.
+```text
+## Learning objective
+## Before you begin
+## Success criteria
+## Cleanup
+```
 
-## Rule: Only use the CKAD learning cluster
+Violation: a missing heading.
 
-Claude must only interact with the Kubernetes cluster using the
-`kind-ckad` context.
+Check: `tests/rules/r2-lab-readme-sections.sh`
 
-Violation:
-- A mutating Kubernetes command is executed against a different context.
+---
 
-Detection:
-- The current Kubernetes context is not `kind-ckad` before a mutating command.
+## R3 — Lab title number matches the directory number
+
+`labs/07-pod-lifecycle/README.md` must start with `# Lab 7 — `.
+
+Violation: title number differs from directory number.
+
+Check: `tests/rules/r3-lab-title-matches-dir.sh`
+
+---
+
+## R4 — Each lab is confined to its own namespace
+
+Every lab declares `Namespace: lab-NN` in `## Before you begin`, where `NN` is
+the lab number, and has a `## Cleanup` section that deletes that namespace.
+
+`default` must not be used as a lab namespace.
+
+Violation: a missing, mismatched, or `default` namespace declaration.
+
+Check: `tests/rules/r4-lab-namespace.sh`
+
+---
+
+## R5 — Scratch mirrors labs exactly
+
+AI-generated work for a lab lives in `scratch/<same-directory-name-as-the-lab>/`.
+
+For every `scratch/NN-*/` there must be a `labs/NN-*/` with the identical
+directory name. Flat files such as `scratch/lab-01-exercise-1.md` are a
+violation.
+
+Violation: a scratch lab directory with no identically named lab directory, or
+a file directly under `scratch/` other than `README.md` and `.gitkeep`.
+
+Check: `tests/rules/r5-scratch-mirrors-labs.sh`
+
+---
+
+## R6 — AI-generated implementations stay out of `labs/`
+
+The learner's implementation is the only implementation inside a lab, and it
+lives in `labs/NN-*/solution/`.
+
+Every AI-authored reference implementation and experiment writeup carries the
+marker line `<!-- ai-generated -->` (Markdown) or `# ai-generated` (YAML,
+shell) on its first content line, and must exist only under `scratch/`.
+
+Violation: a file below `labs/` carrying the `ai-generated` marker.
+
+Check: `tests/rules/r6-no-ai-impl-in-labs.sh`
+Enforcement: `tests/hooks/protect-learner-implementation.sh` blocks writes under
+`labs/*/solution/`. Escape hatch for an explicitly requested edit:
+`ALLOW_LEARNER_WRITE=1`.
+
+---
+
+## R7 — Lab READMEs do not leak the solution
+
+A lab README states requirements, not implementations.
+
+It must not contain:
+
+* a fenced `yaml` block containing `kind:`;
+* `kubectl run` or `kubectl create` invocations carrying the task's own
+  parameters (`--image=`, `--restart=`, `--dry-run=`).
+
+Violation: either pattern present in `labs/NN-*/README.md`.
+
+Check: `tests/rules/r7-no-solution-leakage.sh`
+
+---
+
+## R8 — Only the CKAD learning cluster is mutated
+
+Mutating `kubectl` commands run only against the `kind-ckad` context.
+
+This is enforced at runtime by a `PreToolUse` hook, not only by convention.
+
+The same mechanism carries the learner-implementation guard from R6.
+
+Violation: a hook script is missing, not executable, has a syntax error, or is
+not wired into `.claude/settings.local.json`.
+
+Check: `tests/rules/r8-context-guard-wired.sh`
+Enforcement: `tests/hooks/verify-kube-context.sh`,
+`tests/hooks/protect-learner-implementation.sh`
+
+---
+
+## R9 — No credentials in the repository
+
+A kubeconfig, certificate, or key must never be committed.
+
+Violation: a tracked file named `kubeconfig`, `*.kubeconfig`, `*.pem`,
+`*.key`, or a tracked file containing `client-key-data:`.
+
+Check: `tests/rules/r9-no-credentials.sh`

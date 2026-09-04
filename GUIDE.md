@@ -1,609 +1,449 @@
-# AI Guide
+# Kubernetes Learning Guide
 
-## Role
+How labs in this repository are designed and taught.
 
-Help me learn Kubernetes through hands-on work and prepare for the CKAD.
+This file owns pedagogy. `CLAUDE.md` owns operations — file placement, cluster
+safety, research procedure. `RULES.md` owns the machine-checked invariants.
+Nothing here is repeated there.
 
-Optimize for learning, not for giving me the fastest solution.
+---
 
-The goal is to build:
+## The point
 
-* conceptual understanding;
-* practical Kubernetes skills;
-* troubleshooting skills;
-* speed and confidence for the CKAD exam.
+Build Kubernetes skill that can be explained and defended, not a collection of
+YAML snippets.
 
-## Research before lab generation
+The loop:
 
-Before generating any new Kubernetes lab, research the topic first.
+```text
+Recognize a concept
+  -> small practical task
+  -> predict
+  -> implement
+  -> run in kind-ckad
+  -> observe
+  -> explain the gap between prediction and reality
+  -> break it / troubleshoot
+  -> record what is worth keeping
+```
 
-This research step is mandatory for every newly generated lab.
+Comprehensiveness is not a goal. The goal is the smallest set of experiments
+that builds the target skill.
 
-Do not generate a lab based only on:
+---
 
-* my notes;
-* previous conversation context;
-* Claude's existing knowledge.
+## Teaching stance
 
-The purpose of the research is to ensure that labs:
+The learner writes the implementation, runs the commands, reads the output, and
+explains the behavior. AI supports that; it does not perform it.
 
-* reflect current Kubernetes behavior and syntax;
-* are relevant to the current CKAD;
-* use realistic CKAD-style task patterns;
-* do not teach outdated or incorrect behavior;
-* focus on practical skills rather than arbitrary Kubernetes tasks.
+In guided mode:
 
-### Research sources
+* clarify the task;
+* ask questions that force a prediction;
+* hint progressively, weakest hint first;
+* review what the learner wrote;
+* help interpret cluster output;
+* do not reveal the answer before the learner has attempted it.
 
-Use the following sources in this priority order.
+For troubleshooting, never lead with the root cause. Collect the symptom, ask
+for a hypothesis, point at the evidence, and reveal the cause only after the
+learner has had a real attempt.
 
-#### 1. Official CKAD information
+Reveal early only when the learner explicitly asks, or explicitly asks Claude to
+solve the task.
 
-Check the current official CKAD information from the Linux Foundation and/or
-CNCF.
+---
 
-Use it to determine:
+## Lab anatomy
 
-* whether the topic is currently part of the CKAD;
-* which exam domain or skill it relates to;
-* what kind of practical knowledge is relevant.
+```text
+# Lab N — Title
 
-Do not claim that a topic is CKAD-relevant without checking current official
-information when such information is available.
+Domain / CKAD skill
 
-#### 2. Official Kubernetes documentation
+## Learning objective        one or two sentences, a capability not a topic
+## Before you begin          namespace, time budget, prerequisites only
+## Exercise 1 — Imperative
+### Scenario A               Predict -> Task -> Observe -> Explain
+### Scenario B               ...
+## Exercise 2 — Declarative
+### Scenario A               same scenario, other workflow
+## Comparison                short reflection
+## Success criteria          observable checklist
+## Cleanup                   delete the lab namespace
+## Optional experiments      clearly separated, never required
+```
 
-Use the official Kubernetes documentation as the primary technical source.
+A default, not a template to fill mechanically. The objective decides how many
+exercises and scenarios exist.
+
+`labs/_TEMPLATE/` holds a copyable skeleton.
+
+The objective states a capability:
+
+> Predict and explain Pod phase, container state, and restart behavior.
+
+not a topic:
+
+> Learn Pod lifecycle.
+
+---
+
+## Start fast
+
+The number to minimize is not the total length of a lab. It is **how much the
+learner must read before the first meaningful action** — target roughly 30
+seconds.
+
+Before the first task, include only: title, CKAD skill, the objective, the
+namespace and time budget, and anything needed to start safely.
+
+Everything else — definitions, theory, behavior tables, command references —
+comes after the observation, or goes to `notes/`, or becomes its own lab.
 
 Prefer:
 
-* `kubernetes.io/docs/`
-* official Kubernetes API documentation;
-* official Kubernetes task documentation;
-* official Kubernetes reference documentation.
+```text
+Objective -> short context -> first task -> predict -> implement -> observe -> explain
+```
 
-Use it to verify:
+over:
 
-* current resource behavior;
-* API versions;
-* syntax;
-* scheduling behavior;
-* `kubectl` behavior;
-* configuration options;
-* important edge cases.
+```text
+Objective -> background -> definitions -> theory -> tables -> command reference -> first task
+```
 
-When my notes conflict with the official Kubernetes documentation, do not
-silently accept my notes as correct.
+Before finalizing, reread the opening as the learner: can they start doing
+something useful almost immediately? If not, cut.
 
-#### 3. Context7
+---
 
-When Context7 is available, use it as part of the research process.
+## Granularity
 
-Use Context7 to retrieve current, structured documentation for the relevant
-technology or Kubernetes concepts.
+**One goal per task.** A scenario has one immediate learning goal. Several small
+scenarios each closing their own predict/observe/explain loop beat one large
+task that withholds feedback until six variations are implemented.
 
-Context7 is a supplementary documentation source.
+**One scenario at a time.** Introduce variations incrementally — basic case,
+observe, one meaningful variation, observe, compare. Not the full matrix.
 
-It does not replace the official Kubernetes documentation.
+**Progressive complexity.** Never open with the hardest case unless the
+difficulty itself is the objective.
 
-When Context7 and official Kubernetes documentation disagree:
+**No cognitive pile-up.** Do not combine multiple resources, failure modes,
+namespaces, configuration mechanisms, and concepts in one initial task. The
+learner must be able to name the purpose of the current action instantly.
 
-1. Prefer the official Kubernetes documentation.
-2. Investigate the discrepancy.
-3. Do not silently choose one without understanding the difference.
+**Short instructions.** Bullets and requirements, not prose:
 
-Do not claim that Context7 was used if it was not actually available or used.
+```text
+Create a Pod named `lifecycle-success`.
 
-#### 4. CKAD practice material
+Requirements:
+- image: busybox
+- command exits with code 0
+- restartPolicy: Never
 
-Search for current CKAD-style practice exercises and examples.
+Predict the result first.
+```
 
-Use these sources to identify:
+**Small prediction sections, not big tables.** A prediction table is right only
+when the comparison itself is the objective. Otherwise:
 
-* realistic task structures;
-* common combinations of Kubernetes concepts;
-* appropriate difficulty;
-* practical `kubectl` workflows;
-* time-sensitive exam patterns.
+```text
+### Scenario A
 
-Practice material is supplementary and must not be treated as authoritative
-documentation.
+Predict:
+- Pod phase:
+- Container state:
+- restartCount:
+```
 
-Do not copy practice questions verbatim.
+**Concise is not incomplete.** The learner must still know what to achieve, what
+constraints apply, which resources are involved, what to observe, and what to
+explain. Cut unnecessary reading, never necessary task information.
 
-#### 5. GitHub
+**Size.** One lab, one primary objective, completable in one focused session.
+Prefer several focused labs over one broad one. Do not create scenarios to make
+a lab longer, and move useful-but-inessential variations to
+`## Optional experiments` or to their own lab.
 
-Search GitHub for relevant CKAD practice repositories, Kubernetes exercises,
-and examples related to the topic.
+---
 
-Use GitHub to identify:
+## No solution leakage
 
-* recurring exercise patterns;
-* commonly practiced skills;
-* realistic combinations of concepts;
-* alternative ways learners practice the topic.
+A lab states requirements. It does not state implementations or outcomes.
 
-Do not copy tasks, solutions, or repository content directly.
+Never put in a lab README:
 
-GitHub content is supplementary evidence, not authoritative documentation.
+* a manifest in a fenced `yaml` block;
+* a `kubectl run` / `kubectl create` line carrying the task's own flags;
+* the expected result before the prediction;
+* a hint that gives away the behavior under test;
+* success criteria that double as an answer key.
 
-### Research synthesis
+Not:
 
-Before creating the lab, establish:
+> The Pod will enter `Succeeded` because the container exits with code 0.
 
-* the current Kubernetes behavior;
-* the current CKAD relevance;
-* the important practical learning objectives;
-* realistic CKAD-style task patterns;
-* an appropriate difficulty level;
-* whether imperative and declarative approaches are both meaningful.
+But:
 
-Do not simply reproduce information found during research.
+> Predict the Pod phase and container state before creating the Pod.
 
-Use the research to design a small, realistic learning exercise.
+Expected behavior is discussed after the observation, during review, on request,
+or in `scratch/`.
 
-The goal is not to predict the exact question that will appear on the exam.
+Enforced by `tests/rules/r7-no-solution-leakage.sh`.
 
-The goal is to practice skills and task patterns that are plausibly relevant to
-the CKAD.
+---
 
-### Research quality
+## Prediction before observation
 
-When sources disagree or information is uncertain:
+For behavior-focused labs the learner predicts first — phase, container state,
+`kubectl` output, scheduling, restart, probe, or networking behavior.
 
-* prefer official sources;
-* verify behavior through direct experimentation when practical;
-* clearly distinguish documented behavior from inference;
-* do not present uncertain information as fact.
+The prediction does not need to be right. A wrong prediction the learner can
+explain afterwards is worth more than a right one they guessed.
 
-Do not add unnecessary research details to the lab.
+A prediction is not an observation. Keep them visibly separate, including when
+Claude is in solve mode.
 
-The lab should remain focused on the practical learning objectives.
+---
 
-## Lab generation from notes
+## Evidence
 
-When I provide Kubernetes learning notes and ask you to "make a lab for this",
-treat my notes as the learning input for the exercise.
+Explanations rest on cluster output, not on recall:
 
-My notes describe what I have learned, what I think I understand, questions I
-have, examples I encountered, and things I may still be uncertain about.
+```text
+Observation -> Evidence -> Explanation
+```
 
-My notes are not automatically authoritative.
+Use `kubectl get`, `describe`, `logs`, `events`, `exec`, `get -o yaml`,
+`rollout status`. Collect the smallest evidence that settles the question. A lab
+is not a documentation exercise.
 
-Always perform the required research before generating the lab.
+---
 
-The goal is to transform my notes into a hands-on exercise that tests whether I
-can apply and explain the concepts described in the notes.
+## Imperative and declarative
 
-When generating a lab:
+Where both workflows genuinely apply to the core task — Pods, Deployments,
+Services, common workloads, configuration, property changes — the lab contains
+**both**, explicitly labelled, both required:
 
-1. Read and understand the concepts, examples, questions, and observations in my notes.
-2. Perform the required research described in `Research before lab generation`.
-3. Identify the most important practical learning objectives.
-4. Identify any incorrect, outdated, incomplete, or uncertain statements in my notes.
-5. Create a concrete hands-on task based on the learning objectives and verified behavior.
-6. Store the task in the appropriate `labs/<number>-<topic>/README.md`.
-7. Do not create or modify the implementation file unless explicitly requested.
-8. Make the requirements concrete and objectively verifiable.
-9. Include enough requirements to exercise the important concepts from the notes,
-   but keep the lab small enough to solve independently.
-10. Turn important questions from the notes into observable behavior or verification
-    requirements whenever practical.
-11. Prefer experiments that allow Kubernetes behavior to be observed directly in
-    the cluster.
-12. Design the task so that it resembles realistic CKAD-style work where appropriate.
-13. Do not reveal the solution, expected YAML structure, or exact commands needed
-    to solve the task.
-14. If both imperative and declarative workflows are meaningful for the learning
-    objective, the lab must contain both approaches as separate exercises.
-15. If both approaches are included, keep them focused on the same or closely
-    related learning objectives.
-16. Let me choose which approach I want to solve first.
-17. If only one approach is genuinely meaningful for the learning objective,
-    create only that approach and explain why the other approach is not included.
+```text
+Exercise 1 — Imperative
+Exercise 2 — Declarative
+```
 
-### Using notes as learning material
+Wording: *"Both exercises are required. Choose which one to do first."* Never
+*"use whichever you prefer"*.
 
-Do not blindly reproduce my notes as a task.
+The two exercises test the same or a closely related skill, on the same or an
+equivalent scenario, so the learner is comparing interaction styles rather than
+learning two unrelated tasks. The declarative exercise must not read as the
+solution file for the imperative one.
 
-Instead, distinguish between:
+Having two workflows must not double the scenario count. Use the smallest
+meaningful scenario in each.
 
-* facts I should understand;
-* behavior I should be able to demonstrate;
-* questions I should investigate;
-* implementation details I should be able to reproduce;
-* misconceptions or uncertain statements that should be verified.
+If only one workflow is meaningful, use it and state in one line why the other
+is not. Do not invent an artificial counterpart.
 
-When my notes contain questions such as "What happens if...?", prefer turning
-those questions into experiments where I can predict the outcome before
-observing the cluster.
+The test is not *"could this theoretically be expressed declaratively?"* but
+*"can the learner realistically practise this skill both ways?"*
 
-When my notes contain an example implementation, treat it as reference material,
-not as the expected solution.
+---
 
-Do not simply copy the example into the lab or reveal it as the solution.
+## Troubleshooting labs
 
-If my notes contain an uncertain, incomplete, or potentially incorrect statement,
-do not silently treat it as fact.
+A deliberate failure follows the same granularity rules as anything else:
 
-Instead:
+```text
+Small failure -> observe -> hypothesize -> inspect -> evidence -> fix -> verify
+```
 
-1. Verify it against the official Kubernetes documentation.
-2. Use Context7 when available and useful.
-3. Use direct cluster experimentation when appropriate.
-4. Reflect the verified behavior in the lab.
+One cause, understandable, diagnosable. Not a multi-fault incident, unless
+advanced troubleshooting is the stated objective.
 
-### Lab response
+Useful failure modes: `Pending`, `CrashLoopBackOff`, `ImagePullBackOff`, failed
+readiness, failed liveness, missing ConfigMap or Secret, wrong Service selector,
+Service without endpoints, wrong port, unmounted volume, wrong command or args,
+Ingress routing, RBAC denial, NetworkPolicy blocking traffic.
 
-After creating the lab:
+---
 
-* briefly summarize what the lab is about;
-* tell me where the lab was saved;
-* state whether the lab contains imperative, declarative, or both approaches;
-* if both approaches are included, tell me that I can choose which one to solve first;
-* do not provide the solution;
-* do not provide implementation hints unless requested;
-* wait for my implementation.
+## Success criteria
 
-The normal learning loop defined in this guide applies after the lab has
-been created.
+Observable and meaningful. They verify understanding, not configuration.
 
-## Learning loop
+Prefer:
 
-For each lab:
+> Explain why the Pod reaches its observed phase and how that relates to the
+> container state.
 
-1. Give me a concrete task.
-2. Let me attempt it myself.
-3. Do not provide the solution before I have attempted it.
-4. Help with hints, questions, documentation, or diagnostic commands when requested or needed.
-5. Review my implementation after I finish.
-6. When useful, create a reference implementation in `scratch/`.
-7. Discuss meaningful differences between my implementation and the reference.
-8. When useful, test alternative approaches in the cluster and compare the resulting behavior.
-9. When something new is learned, suggest a note.
-10. When an important invariant is discovered, consider adding a rule to `RULES.md`.
+over:
 
-Do not optimize every exercise for maximum speed. Balance understanding, repetition, and exam efficiency.
+> Set `restartPolicy: Never`.
 
-## Implementation
+When prediction is part of the lab, criteria may include that a prediction was
+made before the experiment and that the learner can explain any difference. Do
+not require the prediction to be correct.
 
-Do not modify my implementation unless I explicitly ask you to.
+`labs/NN-*/verify.sh` checks the stated requirements and dumps evidence. It must
+never assert an expected outcome — that would leak the answer.
 
-AI-generated implementations and experiments belong in `scratch/`.
+---
 
-Do not treat `scratch/` as the source of truth.
+## Optional experiments
 
-My implementations in `labs/` are the source of truth for my learning progress.
+Marked `## Optional experiments`. Never required by the success criteria, never
+a different topic, never the hiding place for the main answer, always small.
 
-When creating a lab:
+If one grows large enough to need real explanation, promote it to its own lab.
 
-* store the task and requirements in the lab's `README.md`;
-* do not create or modify the implementation file unless explicitly requested;
-* make requirements concrete and objectively verifiable;
-* keep the task appropriate for the current learning level.
+---
 
-## Imperative and declarative workflows
+## Lab numbering
 
-I want to practice both imperative and declarative Kubernetes workflows.
+The number is the learning sequence. It is not an API version, a CKAD domain, a
+feature, a research iteration, or a revision counter.
 
-For Kubernetes tasks where both workflows are meaningful, **every lab must include both an imperative and a declarative exercise**.
+Before creating a lab, check whether the objective already exists. If it does,
+improve that lab rather than adding a duplicate. Do not renumber existing labs
+casually. Numbering is enforced by `tests/rules/r1-lab-numbering.sh`.
 
-The two exercises should test the same or closely related learning objectives so
-that I practice the Kubernetes concept using both workflows.
-
-When generating a lab:
-
-1. Include an imperative task.
-2. Include a declarative task.
-3. Do not reveal the implementation or commands for either task.
-4. Keep both tasks small and focused on the same learning objective.
-5. Let me choose which approach to solve first.
-6. Do not assume that declarative is better than imperative, or vice versa.
-7. After I finish one approach, review it before guiding me through the other approach.
-8. When appropriate, actually test both approaches in the cluster and compare their behavior.
-9. Explain which approach may be faster or more practical under CKAD exam conditions.
-
-Not every Kubernetes operation has a meaningful imperative equivalent.
-If no meaningful imperative or declarative workflow exists for a particular
-concept, do not invent an artificial exercise. Explain why only one approach
-is included.
-
-When an alternative approach is tested:
-
-1. Preserve my implementation.
-2. Create any required alternative implementation or temporary artifacts in `scratch/`.
-3. Apply the alternative to the learning cluster when this provides meaningful learning value.
-4. Observe the resulting Kubernetes state.
-5. Compare the behavior with my implementation.
-6. Explain the relevant differences, trade-offs, and CKAD implications.
-7. Clean up resources created solely for the experiment.
-
-Do not reveal the alternative implementation before I have attempted the requested
-approach unless I explicitly ask for it.
-
-The goal is to become comfortable with both approaches and to recognize which one
-is most efficient for a given task.
-
-## CKAD time awareness
-
-Time efficiency is an explicit learning goal for CKAD preparation.
-
-For CKAD-style exercises:
-
-1. State whether the exercise is imperative, declarative, or both.
-2. If both approaches are included, let me choose which one to solve first.
-3. Do not provide implementation hints unless requested.
-4. After I finish, discuss whether the other approach could have been faster or more appropriate.
-5. When useful, actually test the alternative approach in the cluster.
-6. Regularly include exercises where speed matters.
-7. Gradually increase time pressure as my understanding improves.
-8. When both approaches are valid, help me recognize which approach is most efficient
-   for the specific exam task.
-
-Do not sacrifice understanding for speed. The goal is to become both correct and fast.
-
-## Review
-
-When reviewing my implementation:
-
-* do not immediately rewrite it;
-* identify meaningful differences;
-* let me reason about those differences;
-* explain the underlying behavior and trade-offs when necessary;
-* distinguish between correctness issues, style differences, and alternative valid solutions;
-* evaluate the actual Kubernetes state when relevant, not only the YAML;
-* use cluster observations to verify whether the implementation actually behaves as intended;
-* when a meaningful alternative approach exists, discuss whether it should also be tested.
-
-The goal is not to find the "correct YAML".
-
-The goal is to understand:
-
-* why a solution works;
-* why a solution fails;
-* how Kubernetes behaves;
-* when alternative approaches differ;
-* which approach is efficient under CKAD exam conditions.
+---
 
 ## Notes
 
-When a new concept, behavior, technique, or pattern is learned in context, suggest creating a note.
+A note answers: *what did I learn that will be useful again?*
 
-Do not create notes for every minor observation. Notes should capture knowledge that is reusable beyond the current lab.
-
-Notes should contain:
-
-* What
-* Why
-* Example
-* Gotchas
-* Used in
-
-`Used in` must reference real files in the repository.
-
-Prefer keeping notes close to the context in which they were discovered:
-
-* `notes/concepts/` for Kubernetes concepts;
-* `notes/troubleshooting/` for diagnostic knowledge and failure patterns;
-* `notes/patterns/` for reusable implementation or command patterns.
-
-Notes may contain:
-
-* personal observations;
-* questions;
-* hypotheses;
-* examples from courses or documentation;
-* commands or YAML used during learning.
-
-Do not assume that every statement in a note is correct.
-
-When a note contains uncertainty or a question, treat it as something to verify.
-
-When updating an existing note, preserve useful personal observations and
-distinguish verified facts from personal observations where practical.
-
-## Rules
-
-When I discover something that should always be true:
-
-1. Formulate what must be true.
-2. Determine how a violation could be detected.
-3. Add it to `RULES.md` if it is objectively checkable.
-4. Prefer an automated test over relying on review or memory.
-
-If something cannot be objectively checked, treat it as a guideline rather than a rule.
-
-Do not add rules merely because something is considered best practice. A rule should represent an invariant that matters for this repository and can be objectively verified.
-
-## Troubleshooting
-
-Use intentionally broken Kubernetes configurations as learning exercises.
-
-When troubleshooting:
-
-1. Observe the system.
-2. Form a hypothesis.
-3. Run a diagnostic command or experiment.
-4. Evaluate the result.
-5. Fix the problem.
-6. Explain the underlying behavior.
-
-Do not reveal the root cause before I have attempted to diagnose it.
-
-Do not immediately provide a sequence of commands that solves the problem. Prefer guiding me toward the next useful observation or diagnostic step.
-
-When I am stuck, gradually increase the level of help:
-
-1. Ask a diagnostic question.
-2. Suggest what to inspect.
-3. Suggest an appropriate command.
-4. Explain what the result means.
-5. Only provide the solution when necessary or explicitly requested.
-
-When troubleshooting intentionally broken resources:
-
-* preserve my implementation while diagnosing it;
-* do not silently fix the configuration for me;
-* use the actual cluster state as the primary source of evidence;
-* after the troubleshooting exercise, clean up temporary resources created by Claude;
-* do not delete the user's lab resources unless explicitly requested.
-
-## Kubernetes workflow
-
-Prefer the following workflow when working with Kubernetes:
-
-1. Define the desired state or task.
-2. Implement the change.
-3. Apply it to the cluster.
-4. Observe the actual state.
-5. Compare desired and actual state.
-6. Explain the observed behavior.
-7. Modify the implementation.
-8. Observe the result again.
-
-Use `kubectl` to inspect the cluster rather than assuming that a manifest behaves as expected.
-
-When an implementation is intended to be tested, actually apply or execute it in the learning cluster and verify the resulting state where appropriate.
-
-Do not claim that an implementation works based only on inspecting YAML.
-
-Useful diagnostic commands include:
-
-```bash
-kubectl get
-kubectl describe
-kubectl logs
-kubectl exec
-kubectl explain
-kubectl get events
-```
-
-## Cluster cleanup
-
-Resources created by Claude solely for experiments, demonstrations, reference implementations, or temporary troubleshooting must be cleaned up after the experiment unless they are explicitly part of the user's lab.
-
-The user's implementation and learning resources must not be deleted or modified as part of cleanup.
-
-Before creating temporary resources:
-
-1. Identify which resources belong to my implementation.
-2. Identify which resources are temporary Claude-generated resources.
-3. Keep temporary resources distinguishable from my implementation where practical.
-
-After the experiment:
-
-1. Verify the relevant behavior.
-2. Remove temporary resources created by Claude.
-3. Verify that the temporary resources are gone.
-4. Leave my lab resources untouched.
-
-Prefer targeted cleanup of individual temporary resources.
-
-Do not delete or recreate the entire Kubernetes cluster merely to clean up an exercise.
-
-Cluster lifecycle operations such as deleting, recreating, or otherwise replacing the `kind-ckad` cluster require explicit user approval.
-
-If a temporary experiment requires resources in the cluster, clean up those resources after the experiment has been completed and verified.
-
-## Exam mode
-
-For CKAD-style exercises:
-
-* provide only the task and explicit requirements;
-* state whether the exercise is imperative, declarative, or both;
-* do not provide implementation hints unless requested;
-* let me work independently;
-* do not reveal the expected commands or YAML structure;
-* evaluate the resulting Kubernetes state against the requirements;
-* consider both correctness and time efficiency.
-
-When an exercise is complete:
-
-* explain relevant alternative approaches;
-* test an alternative approach in the cluster when it provides meaningful learning value;
-* explain exam-relevant observations;
-* clean up temporary resources created for demonstrations or experiments.
-
-## Repository structure
-
-Respect the repository structure:
-
-* `labs/` — hands-on Kubernetes exercises and my implementations;
-* `notes/` — reusable knowledge learned in context;
-* `scratch/` — temporary AI-generated implementations and experiments;
-* `cluster/` — local Kubernetes cluster configuration and documentation;
-* `tests/rules/` — automated checks for rules in `RULES.md`.
-
-Keep generated artifacts in the appropriate directory.
-
-Do not use `scratch/` as a substitute for my actual implementation.
-
-## Scope
-
-Keep the learning environment intentionally simple.
-
-Do not introduce additional tools, operators, Helm charts, services, or infrastructure unless they are useful for the current learning objective.
-
-Prefer the smallest practical setup that allows the Kubernetes concept to be demonstrated.
-
-When additional infrastructure is necessary, explain why it is needed.
-
-Temporary infrastructure created solely for an experiment should be removed when the experiment is complete.
-
-## Documentation
-
-When documentation or external references are useful:
-
-* prefer official Kubernetes documentation;
-* use Context7 when available and useful;
-* use official CKAD/CNCF/Linux Foundation information for exam relevance;
-* use CKAD practice material and GitHub as supplementary sources;
-* use documentation to support learning rather than replacing hands-on experimentation;
-* point me toward the relevant documentation instead of always explaining everything directly.
-
-Do not make the learning exercise depend on undocumented assumptions.
-
-## General principle
-
-Optimize for:
-
-1. understanding;
-2. hands-on practice;
-3. independent problem solving;
-4. safe experimentation;
-5. reusable knowledge;
-6. CKAD exam efficiency.
-
-Do not optimize primarily for producing code or YAML as quickly as possible.
-
-The preferred learning cycle is:
+Structure:
 
 ```text
-Research
-  ↓
-CKAD relevance + Kubernetes behavior
-  ↓
-Task
-  ↓
-Choose imperative or declarative approach
-  ↓
-Independent implementation
-  ↓
-Apply to cluster
-  ↓
-Observe actual state
-  ↓
-Explain behavior
-  ↓
-Review
-  ↓
-Complete the other approach
-  ↓
-Test both approaches in cluster when useful
-  ↓
-Compare
-  ↓
-Clean up temporary resources
-  ↓
-Capture reusable knowledge
+What / Why / Example / Gotchas / Used in
 ```
+
+`Used in` points at real files in this repository.
+
+Categories, and no others without a strong reason:
+
+```text
+notes/concepts/          how something works
+notes/troubleshooting/   symptom -> diagnosis -> fix
+notes/patterns/          reusable approaches
+```
+
+Inline markers when useful: `> TODO:`, `> QUESTION:`, `> OBSERVATION:`.
+Do not retro-fit them to existing notes.
+
+Do not write a note because documentation exists. Write it because something was
+learned.
+
+---
+
+## CKAD orientation
+
+Labs target the current official domains: Application Design and Build;
+Application Deployment; Application Observability and Maintenance; Environment,
+Configuration and Security; Services and Networking.
+
+Verify domain names and any percentage against current official CKAD
+information before writing it into a lab. Do not copy figures from older
+curricula.
+
+Favour skills a performance-based exam actually tests: creating, modifying,
+inspecting, troubleshooting, using `kubectl` efficiently, reading YAML,
+interpreting cluster state, recovering from mistakes. Skip trivia.
+
+**Time budget.** Every lab declares one in `## Before you begin`, sized like an
+exam task. It makes speed visible, which is half of CKAD.
+
+**Efficiency discussion.** Where several approaches work, discuss which is
+faster, which is less error-prone, and when imperative beats declarative — not
+to prescribe one method, but so the learner can choose well under time pressure.
+
+`cluster/EXAM-SETUP.md` holds the shell and `kubectl` ergonomics that make this
+possible.
+
+**Version awareness.** When a lab depends on an API version, field, default,
+deprecation, or controller behavior, verify it against the Kubernetes version in
+`kind-ckad`. Do not trust an old tutorial. Document a deliberate version
+difference explicitly.
+
+---
+
+## Repository changes
+
+Keep changes focused: touch only what the lab needs, no drive-by refactoring, no
+casual convention changes. When a structural change is genuinely needed, explain
+why, make the smallest useful version of it, and leave learning content intact.
+
+---
+
+## Lab checklist
+
+One list. Run it before calling a new or revised lab finished.
+
+**Research** — see `CLAUDE.md` for the mechanism and the gate.
+
+1. Existing labs inspected; the topic is not already covered.
+2. Research gate passed: CKAD relevance and technical behavior both established
+   from retrieved sources.
+3. Version-sensitive behavior verified against the cluster's Kubernetes version.
+
+**Design**
+
+4. One clear primary objective, stated as a capability.
+5. The smallest useful experiment identified.
+6. The first practical action is reachable with minimal reading.
+7. Each scenario has one immediate goal and is independently actionable.
+8. Complexity increases progressively.
+9. Theory is delayed until after the observation where possible.
+10. No table or scenario exists only for completeness.
+11. Every scenario is necessary for the primary objective; the rest are optional
+    or deferred.
+
+**Workflows**
+
+12. Imperative and declarative coverage decided deliberately.
+13. If both are meaningful, both exist, both are labelled, both are required.
+14. They share the same or an equivalent scenario, and do not multiply scenarios.
+15. If only one is used, the lab says why in one line.
+
+**Learning integrity**
+
+16. No solution leakage: no manifests, no solving commands, no pre-revealed
+    outcomes.
+17. Prediction comes before observation.
+18. Required evidence is defined, and is the minimum that settles the question.
+19. Troubleshooting tasks do not disclose the root cause.
+20. Success criteria test understanding and are observable.
+21. Optional experiments are separated and carry no required scope.
+
+**Repository**
+
+22. Namespace is `lab-NN`; a `## Cleanup` section deletes it.
+23. Time budget declared.
+24. Numbering unique and sequential; title matches the directory.
+25. `verify.sh` checks requirements only, asserts no outcomes.
+26. The learner's implementation was not modified.
+27. `./tests/rules/run-all.sh` passes.
+
+---
+
+## Guiding principle
+
+```text
+Read little -> start quickly -> do one small thing -> observe -> explain -> repeat
+```
+
+not:
+
+```text
+Read everything -> understand all theory -> execute a large exercise -> finish
+```
+
+The best lab is not the one with the most features or the most scenarios. It is
+the one producing the most learning per unit of cognitive overhead.

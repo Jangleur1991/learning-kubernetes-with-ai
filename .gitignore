@@ -1,1 +1,18 @@
-scratch/
+# IDE
+.idea/workspace.xml
+.idea/shelf/
+*.iml
+
+# Scratch: AI observation writeups ARE tracked (they are evidence).
+# Only throwaway artifacts are ignored.
+scratch/**/tmp/
+scratch/**/*.log
+scratch/**/*.tmp
+
+# kubeconfig must never land in the repo
+kubeconfig
+*.kubeconfig
+
+# Claude Code: share settings.json, keep machine-local overrides out
+.claude/settings.local.json
+.claude/.cc-writes/
