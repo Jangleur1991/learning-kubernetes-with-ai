@@ -141,3 +141,31 @@ Violation: a tracked file named `kubeconfig`, `*.kubeconfig`, `*.pem`,
 `*.key`, or a tracked file containing `client-key-data:`.
 
 Check: `tests/rules/r9-no-credentials.sh`
+
+---
+
+## R10 — The guided-mode anti-leak guards are wired
+
+Guided mode is the default teaching stance (`GUIDE.md`). It is enforced at
+runtime, not only by convention.
+
+Two hooks carry it:
+
+* `tests/hooks/guided-mode-guard.sh` — a `UserPromptSubmit` hook that resolves
+  the current mode and injects the prohibitions into context on every turn, so
+  the instruction cannot decay over a long conversation;
+* `tests/hooks/detect-solution-leak.sh` — a `Stop` hook that reads back what
+  Claude just said and refuses to end the turn when, in guided mode, the message
+  contains a solving `kubectl` invocation, a manifest, or a pre-revealed
+  outcome.
+
+Mode state lives in `.claude/lab-mode` and holds `guided` or `solve`. Only the
+learner's own words flip it; the hook owns the file, not the model.
+
+Violation: a hook script is missing, not executable, has a syntax error, is not
+wired into `.claude/settings.json`, or `.claude/lab-mode` holds anything other
+than `guided` or `solve`.
+
+Check: `tests/rules/r10-guided-mode-guard-wired.sh`
+Enforcement: `tests/hooks/guided-mode-guard.sh`,
+`tests/hooks/detect-solution-leak.sh`

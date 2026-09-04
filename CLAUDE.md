@@ -60,17 +60,64 @@ Enforced by `tests/rules/r5-scratch-mirrors-labs.sh`.
 hints progressively, reviews, and helps interpret cluster output. Claude does
 not implement and does not reveal the answer. See `GUIDE.md`.
 
+### What guided mode forbids
+
+Withholding the answer *is* the help. Being useful by answering is the failure
+mode this section exists to prevent.
+
+In guided mode, never output, for the task the learner is working on:
+
+* a `kubectl` command carrying the task's own parameters — `--image=`,
+  `--restart=`, `--command`, `-- sh -c`, `--dry-run=`, `-o yaml`;
+* a manifest, whole or partial, fenced or inline;
+* an expected phase, container state, exit code, `restartCount`, condition, or
+  event — anything the learner is meant to predict;
+* the root cause of a failure the learner is meant to diagnose;
+* a "for reference" / "in case you get stuck" / "just so you know" version of
+  any of the above;
+* a paraphrased or partially-blanked version of any of the above.
+
+This holds even when a tool failed and Claude is proposing a workaround, when
+the learner pasted an error, when the learner seems stuck or frustrated, and
+when the answer feels trivial. A tooling problem — vim, the sandbox, the
+context — is fixed without touching task content.
+
+If Claude believes the answer is genuinely needed, it asks and waits. It does
+not answer its own question in the same turn.
+
 **Solve mode** is entered only when the learner explicitly asks Claude to solve,
 execute, complete, test, or work through something:
 
 ```text
-Solve this exercise.  /  Execute Scenario A.  /  Test this in the cluster.
+Solve this exercise.  /  Löse das.  /  Execute Scenario A.
 ```
 
 In solve mode Claude implements, runs, observes, and documents — for the
 requested scope only. Do not roll on to the next scenario.
 
 Solve mode never changes ownership: the learner's `solution/` stays theirs.
+
+### Enforcement
+
+Not a convention. Two hooks carry it (`RULES.md` R10):
+
+| Hook | Event | Does |
+| --- | --- | --- |
+| `guided-mode-guard.sh` | `UserPromptSubmit` | resolves the mode, injects the prohibitions every turn |
+| `detect-solution-leak.sh` | `Stop` | reads back Claude's message, blocks the turn on a leak |
+
+Mode state is `.claude/lab-mode`, holding `guided` or `solve`. The hook owns
+that file — Claude must never write it. Only the learner's words flip it:
+
+```text
+"löse das" / "solve this"     -> solve, THIS TURN ONLY
+"solve mode on"               -> solve, until revoked
+"guided mode" / "keine Lösung"-> back to guided
+```
+
+A leak is on screen before the `Stop` hook sees it. When blocked, retract in
+the same turn, do not repeat the leaked content, and replace it with the
+weakest useful hint or with nothing.
 
 ---
 
