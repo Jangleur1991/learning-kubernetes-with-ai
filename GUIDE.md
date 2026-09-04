@@ -357,6 +357,14 @@ Favour skills a performance-based exam actually tests: creating, modifying,
 inspecting, troubleshooting, using `kubectl` efficiently, reading YAML,
 interpreting cluster state, recovering from mistakes. Skip trivia.
 
+**Prediction targets like Pod phase are not memorization.** A prediction
+section asking for the Pod phase or container state is not asking the learner
+to recite an enum. The exam does not test whether someone can name the
+possible phases; it tests whether they can look at `kubectl get`, `describe`,
+and exit codes under time pressure and correctly attribute cause to effect in
+seconds, not minutes. If a prediction task reduces to flashcard recall with no
+live cluster step, it has drifted into trivia and should be cut or reworked.
+
 **Time budget.** Every lab declares one in `## Before you begin`, sized like an
 exam task. It makes speed visible, which is half of CKAD.
 
